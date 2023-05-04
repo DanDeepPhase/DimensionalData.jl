@@ -56,7 +56,7 @@ end
 @inline rebuildsliced(f::Function, A::AbstractDimArray, data::AbstractArray, I::Tuple, name=name(A)) =
     rebuild(A, data, slicedims(f, A, I)..., name)
 
-for func in (:val, :index, :lookup, :metadata, :order, :sampling, :span, :bounds, :locus)
+for func in (:val, :index, :lookup, :metadata, :order, :sampling, :span, :bounds, :cellbounds, :locus)
     @eval ($func)(A::AbstractDimArray, args...) = ($func)(dims(A), args...)
 end
 
@@ -258,7 +258,7 @@ function Adapt.adapt_structure(to, A::AbstractDimArray)
         data=Adapt.adapt(to, parent(A)),
         dims=Adapt.adapt(to, dims(A)),
         refdims=Adapt.adapt(to, refdims(A)),
-        name=Name(name(A)),
+        name=Name(Symbol(name(A))),
         metadata=Adapt.adapt(to, metadata(A)),
     )
 end

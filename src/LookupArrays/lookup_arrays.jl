@@ -82,6 +82,7 @@ metadata(lookup::AutoLookup) = hasproperty(lookup.kw, :metadata) ? lookup.kw.met
 Base.step(lookup::AutoLookup) = Base.step(parent(lookup))
 
 bounds(lookup::LookupArray) = _bounds(order(lookup), lookup)
+cellbounds(lookup::LookupArray, i) = bounds(view(lookup, i:i))
 
 _bounds(::ForwardOrdered, l::LookupArray) = first(l), last(l)
 _bounds(::ReverseOrdered, l::LookupArray) = last(l), first(l)

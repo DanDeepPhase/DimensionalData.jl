@@ -185,6 +185,7 @@ name(dim::Val{D}) where D = name(D)
 label(x) = string(string(name(x)), (units(x) === nothing ? "" : string(" ", units(x))))
 
 bounds(dim::Dimension) = bounds(val(dim))
+cellbounds(dim::Dimension, i::Integer) = cellbounds(val(dim), i)
 shiftlocus(locus::Locus, dim::Dimension) = rebuild(dim, shiftlocus(locus, lookup(dim)))
 maybeshiftlocus(locus::Locus, d::Dimension) = rebuild(d, maybeshiftlocus(locus, lookup(d)))
 
@@ -209,8 +210,8 @@ for func in (:order, :span, :sampling, :locus)
 end
 
 # Dipatch on Tuple{<:Dimension}, and map to single dim methods
-for f in (:val, :index, :lookup, :metadata, :order, :sampling, :span, :bounds, :locus,
-          :name, :label, :units)
+for f in (:val, :index, :lookup, :metadata, :order, :sampling, :span, 
+          :bounds, :locus, :name, :label, :units)
     @eval begin
         $f(ds::DimTuple) = map($f, ds)
         $f(ds::Tuple{}) = ()
@@ -218,6 +219,8 @@ for f in (:val, :index, :lookup, :metadata, :order, :sampling, :span, :bounds, :
         $f(ds::DimTuple, I) = $f(dims(ds, key2dim(I)))
     end
 end
+cellbounds(ds::DimTuple, i1, I...) = cellbounds(ds, (i1, I...))
+cellbounds(ds::DimTuple, I::Tuple) = map(cellbounds, ds, I)
 
 @inline function selectindices(x, selectors)
     if dims(x) isa Nothing
