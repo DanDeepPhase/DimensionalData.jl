@@ -11,8 +11,6 @@ A = rand(X(1:0.1:20), Y(1:20), Ti(DateTime(2000):Day(3):DateTime(2003)))
 groupmeans = mean.(groupby(A, Ti=month))
 # or just means along the time dimension within groups
 groupmeans = mean.(groupby(A, Ti=month); dims=Y)
-groupmeans = 
-groupby(A, Ti=month)[1]
 # Or do something else with Y
 groupmeans = mean.(groupby(A, Ti=month, Y=isodd))
 ```
