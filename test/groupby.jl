@@ -1,6 +1,7 @@
 using DimensionalData, Test, Dates
 using DimensionalData: Dimensions
 using DimensionalData: LookupArrays
+using Statistics
 const DD = DimensionalData
 
 # Make a demo DimArray
