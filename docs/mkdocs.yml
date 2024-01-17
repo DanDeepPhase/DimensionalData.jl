@@ -117,4 +117,5 @@ plugins:
 nav:
   - "Home": "index.md"
   - "Crash course" : "crash/generated/course/course.md"
+  - "groupby" : "crash/generated/course/groupby.md"
   - "Reference" : "reference.md"

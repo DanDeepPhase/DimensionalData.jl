@@ -1,5 +1,6 @@
 using DimensionalData
 using Dates
+using Statistics
 
 # # DateTime operations
 
@@ -22,18 +23,19 @@ month.(tempo)
 dayofyear.(tempo)
 
 # ## season
-## TODOS: We will need several functions.
 
-## TODO, we need a new function that can return 'DJF', 'DJF', 'DJF', ..., 'DJF', 'DJF', 'DJF'.
+# ### TODOS: We will need several functions.
+
+# ### TODO, we need a new function that can return DJF (Dec-Jan-Feb), MAM (Mar-Apr-May)... etc.
 
 # ## select by month, days, years and seasons
-## TODO, how do we select month 1 or 2, and even a group of them, i.e. [1,3,5]? Same for days, years and seasons.
+# ### TODO, how do we select month 1 or 2, and even a group of them, i.e. [1,3,5]? Same for days, years and seasons.
 
 # # groupby operations
 # Here we use the same time functions from above
 
 mean.(groupby(ds, Ti=month)) # is combining month from different years
-## TODO. How do we aggregate by arbitrary months, let' say I want to aggregate every 3 months?
+# ### TODO. How do we aggregate by arbitrary months, let' say I want to aggregate every 3 months?
 
 #
 mean.(groupby(ds, Ti=year))
@@ -47,16 +49,18 @@ mean.(groupby(ds, Ti=hour))
 #
 mean.(groupby(ds, Ti=Dates.hour12))
 
-## TODO. How do could we incorporate resample? Let's say if we have hour resolution I want to resample every 3,6,12.. hours?
+# ### TODO. How do could we incorporate resample? Let's say if we have hour resolution I want to resample every 3,6,12.. hours?
 
 mean.(groupby(ds, Ti=dayofyear)) # it will combine the same day from different year.
 
+#
 mean.(groupby(ds, Ti=yearmonthday)) # this does the a daily mean aggregation.
 
+#
 mean.(groupby(ds, Ti=yearmonth)) # this does a monthly mean aggregation
 
-## TODO. Similar to the hourly resample, how do we do it for more than 1 day, let's say 8daily?
+# ### TODO. Similar to the hourly resample, how do we do it for more than 1 day, let's say 8daily?
 
-## TODO: Group by Dims. This should include the rasters input sampling.
+# ### TODO: Group by Dims. This should include the rasters input sampling.
 
 # ## Apply custom function (i.e. normalization) to grouped output.
