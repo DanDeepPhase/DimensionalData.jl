@@ -138,7 +138,7 @@ function Base.show(io::IO, mime::MIME"text/plain", x::ShowWith; kw...)
     s1 = x.hide ? " "^length(s) : s
     printstyled(io, s1; color=x.color)
 end
-showdefault(x) = ShowWith(x, false, :default)
+showdefault(x) = x
 showblack(x) = ShowWith(x, false, :light_black)
 showhide(x) = ShowWith(x, true, :nothing)
 
