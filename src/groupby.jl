@@ -1,4 +1,38 @@
 """
+    DimGroupByArray <: AbstractDimArray
+
+`DimGroupByArray` is essentially a `DimArray` but holding 
+the results of a `groupby` operation.
+
+This wrapper allows for specialisations on later broadcast or 
+reducing operations, e.g. for chunk reading with DiskArrays.jl, 
+because we know the data originates from a single array. 
+"""
+struct DimGroupByArray{T,N,D<:Tuple,R<:Tuple,A<:AbstractArray{T,N},Na,Me} <: AbstractDimArray{T,N,D,A}
+    data::A
+    dims::D
+    refdims::R
+    name::Na
+    metadata::Me
+    function DimGroupByArray(
+        data::A, dims::D, refdims::R, name::Na, metadata::Me
+    ) where {D<:Tuple,R<:Tuple,A<:AbstractArray{T,N},Na,Me} where {T,N}
+        checkdims(data, dims)
+        new{T,N,D,R,A,Na,Me}(data, dims, refdims, name, metadata)
+    end
+end
+function DimGroupByArray(data::AbstractArray, dims::Union{Tuple,NamedTuple}; 
+    refdims=(), name=NoName(), metadata=NoMetadata()
+)
+    DimGroupByArray(data, format(dims, data), refdims, name, metadata)
+end
+@inline function rebuild(
+    A::DimGroupByArray, data::AbstractArray, dims::Tuple, refdims::Tuple, name, metadata
+)
+    DimArray(data, dims, refdims, name, metadata) # Rebuild as a reguilar DimArray
+end
+
+"""
     groupby(A::AbstractDimArray, dim::Dimension)
 
 
@@ -14,6 +48,9 @@ groupmeans = mean.(groupby(A, Ti=month); dims=Y)
 # Or do something else with Y
 groupmeans = mean.(groupby(A, Ti=month, Y=isodd))
 ```
+
+Currently this returns a `DimArray` or `DimArray` of the original `AbstractDimArray`
+or `AbstractDimStack` types. This may change to a 
 """
 groupby(A::AbstractDimArray; kw...) = groupby(A, DD.kwdims(kw))
 groupby(A::AbstractDimArray, dimfunc::Dimension...) = groupby(A, (dimfunc,))
@@ -25,8 +62,9 @@ function groupby(A::AbstractDimArray, dimfuncs::DimTuple)
     dims = map(first, dims_indices)
     indices = map(last, dims_indices)
     # Hack DimPoints to get tuples of all view indices combinations
-    views = map(D -> view(A, map(rebuild, dims, D)...), DimPoints(indices))
-    return rebuild(views; dims=format(dims, views))
+    views = parent(map(D -> view(A, map(rebuild, dims, D)...), DimPoints(indices)))
+    metadata = Metadata(:groupby => dimfuncs)
+    return DimGroupByArray(views, format(dims, views), (), :groupby, metadata)
 end
 
 function _group_indices(lookup, f::Function)
