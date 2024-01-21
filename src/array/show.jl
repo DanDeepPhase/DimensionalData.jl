@@ -1,15 +1,19 @@
 function Base.summary(io::IO, A::AbstractDimArray{T,0}) where {T}
-    print(io, "0-dimensional ")
+    print(io, _array_dim_description(A))
     print(io, string(nameof(typeof(A)), "{$T,0}"))
 end
 function Base.summary(io::IO, A::AbstractDimArray{T,1}) where {T}
-    print(io, size(A, 1), "-element ")
+    print(io, _array_dim_description(A))
     print(io, string(nameof(typeof(A)), "{$T,1}"))
 end
 function Base.summary(io::IO, A::AbstractDimArray{T,N}) where {T,N}
-    print(io, join(size(A), "×"), " ")
+    print(io, _array_dim_description(A))
     print(io, string(nameof(typeof(A)), "{$T,$N}"))
 end
+
+_array_dim_description(A::AbstractArray{<:Any,0}) = "0-dimensional "
+_array_dim_description(A::AbstractArray{<:Any,1}) =  "$(size(A, 1)) -element "
+_array_dim_description(A::AbstractArray{<:Any}) = join(size(A), "×") * " "
 
 function Base.show(io::IO, mime::MIME"text/plain", A::AbstractDimArray)
     lines = 0
