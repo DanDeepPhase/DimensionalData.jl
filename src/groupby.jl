@@ -1,12 +1,12 @@
 """
     DimGroupByArray <: AbstractDimArray
 
-`DimGroupByArray` is essentially a `DimArray` but holding 
+`DimGroupByArray` is essentially a `DimArray` but holding
 the results of a `groupby` operation.
 
-This wrapper allows for specialisations on later broadcast or 
-reducing operations, e.g. for chunk reading with DiskArrays.jl, 
-because we know the data originates from a single array. 
+This wrapper allows for specialisations on later broadcast or
+reducing operations, e.g. for chunk reading with DiskArrays.jl,
+because we know the data originates from a single array.
 """
 struct DimGroupByArray{T,N,D<:Tuple,R<:Tuple,A<:AbstractArray{T,N},Na,Me} <: AbstractDimArray{T,N,D,A}
     data::A
@@ -21,7 +21,7 @@ struct DimGroupByArray{T,N,D<:Tuple,R<:Tuple,A<:AbstractArray{T,N},Na,Me} <: Abs
         new{T,N,D,R,A,Na,Me}(data, dims, refdims, name, metadata)
     end
 end
-function DimGroupByArray(data::AbstractArray, dims::Union{Tuple,NamedTuple}; 
+function DimGroupByArray(data::AbstractArray, dims::Union{Tuple,NamedTuple};
     refdims=(), name=NoName(), metadata=NoMetadata()
 )
     DimGroupByArray(data, format(dims, data), refdims, name, metadata)
@@ -30,6 +30,18 @@ end
     A::DimGroupByArray, data::AbstractArray, dims::Tuple, refdims::Tuple, name, metadata
 )
     DimArray(data, dims, refdims, name, metadata) # Rebuild as a reguilar DimArray
+end
+
+function Base.summary(io::IO, A::DimGroupByArray{T,N}) where {T,N}
+    print(io, _array_dim_description(A))
+    print(io, string(nameof(typeof(A)), "{$(nameof(T)),$N}"))
+end
+
+function show_after(io::IO, mime, A::DimGroupByArray)
+    A1 = DimArray(map(x -> map(rebuild, basedims(x), size(x)), A))
+    printstyled(io, "  groups dimensions and sizes:"; color=:light_black)
+    println()
+    show_after(IOContext(io, :compact=>true, :typeinfo=>eltype(A1)), mime, A1)
 end
 
 """
@@ -50,13 +62,18 @@ groupmeans = mean.(groupby(A, Ti=month, Y=isodd))
 ```
 
 Currently this returns a `DimArray` or `DimArray` of the original `AbstractDimArray`
-or `AbstractDimStack` types. This may change to a 
+or `AbstractDimStack` types. This may change to a
 """
-groupby(A::AbstractDimArray; kw...) = groupby(A, DD.kwdims(kw))
-groupby(A::AbstractDimArray, dimfunc::Dimension...) = groupby(A, (dimfunc,))
-function groupby(A::AbstractDimArray, dimfuncs::DimTuple)
+groupby(A::AbstractDimArray, dimfunc::Dimension...; kw...) = groupby(A, (dimfunc,); kw...)
+function groupby(A::AbstractDimArray, pairs::Pair...; kw...)
+    dims = map(pairs) do (d, v)
+        rebuild(basedims(d), v)
+    end
+    groupby(A, dims; kw...)
+end
+function groupby(A::AbstractDimArray, dimfuncs::DimTuple; kw...)
     dims_indices = map(dimfuncs) do d
-        group_lookup, group_indices = _group_indices(lookup(A, d), DD.val(d)) 
+        group_lookup, group_indices = _group_indices(lookup(A, d), DD.val(d))
         rebuild(d, group_lookup), rebuild(d, group_indices)
     end
     dims = map(first, dims_indices)
